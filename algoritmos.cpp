@@ -140,8 +140,10 @@ std::vector<double> GMAP_TD_Sebastian(cx_mat x, int I, int M, double lambda, dou
 
 	R_e = R_e/double(I);
 
+	
 	//nivel de ruido
-	double noise = 5.0;
+	//double noise = 5.0;
+	double noise = Noise_level( DEP,  M,  PRF,  I);
 
 	//construyo la matrix A (filtro)
 	cx_vec D1 = cx_vec(M);
@@ -176,25 +178,31 @@ std::vector<double> GMAP_TD_Sebastian(cx_mat x, int I, int M, double lambda, dou
 	{
 		while((del_f > 0.005*PRF/2.0 || del_Sp > std::pow(10,0.01) ) && j<30)
 		{
+			momentos[j]= CalculaMomentosPPP(Ry ,M, PRF, noise*PRF);
+			//std::cout<< momentos[j][0]<<"  "<<momentos[j][1]<<"  "<<momentos[j][2]<<"\n";
 			Rp_aux = Rp_matrix( momentos[j][0], momentos[j][2], momentos[j][1], M, PRF);
 			Rpfilter = A*Rp_aux*A.t();
 			dif_Rp = Rp_aux - Rpfilter;
 			Ry = Ry_0 + dif_Rp;
+			//agrego esta linea
+			//Ry = Ry + dif_Rp;
+			//Ry = A*Ry*A.t(); 
 
-			if(j >=2 )
+			if(j >=1 )
 			{
 				del_f = std::abs(momentos[j][1]-momentos[j-1][1]);
-				del_Sp = momentos[j][0]/momentos[j-1][0];
-			}
-
-			++j;
-			
+				del_Sp = std::abs(momentos[j][0]/momentos[j-1][0]);
+			}			
+			//std::cout<<"sigma ="<<momentos[j][2]<<"\n";
 			if(momentos[j][2]==0)
 			{
 				
 				flag=false;
 				break;
 			}
+			
+			//std::cout<<"del_f "<<del_f<<" del_Sp "<< del_Sp<<" \n";
+			++j;	
 		}
 	}
 	else
@@ -203,12 +211,20 @@ std::vector<double> GMAP_TD_Sebastian(cx_mat x, int I, int M, double lambda, dou
 	}
 
  	if(flag && j>1)
-	 	return momentos[j];
+ 	{
+ 		//std::cout<<"ok"<<"numero de iteraciones ="<<j-1<<"\n";
+	 	return momentos[j-1];
+ 	}
+ 		
  	
     else
+    {
+    	//std::cout<<"not ok"<<"numero de iteraciones ="<<j-1<<"\n";
     	return momentos[0];
+    }
+    	
 	
-	
+	std::cout<<endl;
 	
 		
 }

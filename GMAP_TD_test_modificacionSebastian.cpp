@@ -21,7 +21,8 @@ int main(int argc, char const *argv[])
 	int I=1;  // Número de realizaciones para estimar el espectro. (en la práctica I=1), con datos simulados puede ser > 1
 	int celdas = 1000;  //Número de celdas en rango 
 	double PRF = 2000.0; //[Hz] Frecuencia de repetición de pulsos
-	double sigma_c = 23.75; // [Hz] ancho de la DEP del clutter. hay que tener en cuenta el efecto de la ventana. Este valor cambia según el número de muestras 
+	double sigma_c = 24.16; // [Hz] ancho de la DEP del clutter. hay que tener en cuenta el efecto de la ventana. Este valor cambia según el número de muestras 
+	double sigma = 10 ;    //[Hz] el ancho teorico del clutter
 	double lambda = 0.06; // longitud de onda [m]
 
 	auto start = std::chrono::system_clock::now(); // para medir tiempo
@@ -53,7 +54,7 @@ int main(int argc, char const *argv[])
 	std::vector<std::vector<double>> resultado(celdas, std::vector<double>(3));
 	
 	//Construcción de la matriz Rc Sin tener en cuenta la potencia del clutter.
-	mat Rc= Rc_matrix( 1.0,  sigma_c, M, PRF);
+	mat Rc= Rc_matrix( 1.0,  sigma, M, PRF);
 	vec eigval_real;
 	mat  eigvec_real;
 	//calculo los autovalores y autovectores de Rc (esto se hace aca, para poder construir el filtro A de forma mas simple)
@@ -66,7 +67,11 @@ int main(int argc, char const *argv[])
 	//Para cada celda se realiza el llamado a la rutina GMAP_TD
 	for (int i = 0; i < celdas; ++i)
 	{
-		resultado[i]=GMAP_TD_Sebastian(x.col(i),I,M, lambda, PRF, sigma_c, eigval, eigvec);
+		std::cout<<i<<"\n";
+		if(I==1)
+			resultado[i]=GMAP_TD_Sebastian(x.col(i),I,M, lambda, PRF, sigma_c, eigval, eigvec);
+		else
+			resultado[i]=GMAP_TD_Sebastian(x,I,M, lambda, PRF, sigma_c, eigval, eigvec);
 	}
 
 	 end = std::chrono::system_clock::now();
@@ -74,7 +79,8 @@ int main(int argc, char const *argv[])
 	std::cout << "Tiempo trascurrido usando chrono " << diff.count() << " s\n";
 	
 	//save moments into a binary file 
-	saveMoments(resultado,celdas);
+	std::string name_file = "momentos"  + ".bin"; 
+	saveMoments(resultado,celdas, name_file);
 
 	free(buffer);
 	return 0;

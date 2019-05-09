@@ -12,7 +12,7 @@ lambda = c/fc;                  % longitud de onda
 vs = lambda*fs/2;               % velocidad de muestreo
 vm = linspace(0,0.8*vs/2,P);
 
-Sp = 10^(50/10);
+Sp = 10^(4/10);
 sigma_pv = 3; 
 for q=1:P
     

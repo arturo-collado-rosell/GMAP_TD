@@ -9,6 +9,19 @@ using namespace arma;
 
 #define PI 3.14159
 
+void construyeMatriztiempos(int M, double PRF, double* tMatriz)
+{
+	
+	double dt = 1.0/PRF;
+	for (int i = 0; i < M; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			tMatriz[i*M+j] = (j-i)*dt ;
+		}
+	}
+}
+
 cx_vec ConstruyeVector_Cplx(double* data_input, int comienzo, int fin)
 {
 	int M = fin-comienzo;
@@ -127,6 +140,7 @@ vec Ventana(char tipo, int M)
 	{
 		x = x%w;
 		spectrum = 1.0/(PRF*U) * abs(fft(x))%abs(fft(x));
+
 		if(save)
 		{
 			FILE* spectrum_file = fopen("Spectrum.bin","w");
@@ -158,12 +172,14 @@ vec DEP_estimation_matrix(cx_mat x , vec w , double PRF, int M ,bool save , int 
 			aux_sum += abs(fft(x.col(i)))%abs(fft(x.col(i))) ;
 		}
 		spectrum = 1.0/(PRF*U*I)*aux_sum;
+
 	}
 	else if(I==1)
 	{
 			
 		x = x%w;
 		spectrum = 1.0/(PRF*U) * abs(fft(x))%abs(fft(x));	
+		
 	
 	}
 
@@ -182,6 +198,88 @@ vec DEP_estimation_matrix(cx_mat x , vec w , double PRF, int M ,bool save , int 
 	return spectrum;
 }
 
+double Noise_level(vec DEP, int M, double PRF, int I)
+{
+	//Shifteo alrededor de la frecuencia cero
+	vec DEP_shifteada(M);
+	if(M%2==0)
+	{
+		for(int i=0 ; i<M ; i++)
+		{
+			DEP_shifteada[i] =DEP[(M/2+i)%M]; 
+		}
+	}
+	else
+	{
+		for(int i=0 ; i<M ; i++)
+		{
+			DEP_shifteada[i] =DEP[((M-1)/2+1+i)%M]; 
+		}
+	}
+
+	bool flag= true;
+	double dF = PRF/M;
+	double NN = M;
+	double porciento = 0.02;
+	int i=0;
+	double F;
+	std::vector<double> sigma2;
+	std::vector<double> sigma2N;
+	std::vector<double> P;
+	std::vector<double> Q;
+	std::vector<double> R1;
+	std::vector<double> R2;
+
+	while(flag)
+	{
+		F =dF*NN;
+		vec f(NN);
+		for(int j=0 ; j<NN ; ++j)
+		{
+			f[j] = -F/2.0 + j*F/NN ;
+		}
+		//calculo de las magnitudes
+		sigma2.push_back(accu(f%f%DEP_shifteada)/accu(DEP_shifteada) - accu(f%DEP_shifteada)/accu(DEP_shifteada) * accu(f%DEP_shifteada)/accu(DEP_shifteada) );
+		sigma2N.push_back(F*F/12.0);
+		P.push_back(accu(DEP_shifteada)/NN);
+		Q.push_back(accu(DEP_shifteada%DEP_shifteada/NN) - P[i]*P[i]);
+		R1.push_back(sigma2N[i]/sigma2[i]);
+		R2.push_back(P[i]*P[i]/(Q[i]*I));
+		//condicion para detenerse
+		if((R1[i] < 1.05 && R2[i]>0.98) || NN<=10.0 )
+			flag=false;
+		else
+		{
+			int L = NN;
+			double maxDEP = max(DEP_shifteada);
+			double minDEP = min(DEP_shifteada);
+			double threshold = accu(DEP_shifteada)/NN + porciento*(maxDEP-minDEP);
+			int count = 0;
+			std::vector<int> indices;
+			for (int ii = 0; ii < NN; ++ii)
+			{
+				if(DEP_shifteada[ii] > threshold )
+				{
+					indices.push_back(ii);
+					++count;
+				}
+			}
+			//Elimino del vector de la DEP los elementos con indices dado por el vector indices
+			
+			for (int ii = 0; ii < count; ++ii)
+			{
+				DEP_shifteada.shed_row(indices[ii]-ii); //se eliminan las muestras
+			}
+			NN -=count;
+			F -=count*dF;  
+		}
+		++i;	
+	}
+
+double NL = accu(DEP_shifteada)/NN;
+return NL;
+
+}
 
 double Estima_Potencia(vec DEP, int M, double sigma, double df)
 {	
@@ -189,17 +287,23 @@ double Estima_Potencia(vec DEP, int M, double sigma, double df)
 	return P;
 }
 
-
-
 mat Rc_matrix(double P, double sigma, int M, double PRF)
 {
+	double* t = (double*)malloc(sizeof(double*)*M*M);
+	construyeMatriztiempos( M,  PRF,  t);
+	mat R(M,M);
 	double Ts = 1.0/PRF;
-	rowvec R(M);
-	for (int i = 0; i < M; ++i)
+	//rowvec R(M);
+	for (int i = 0; i < M; ++i)		
 	{
-		R(i) = P*std::exp( -2.0*PI*PI*sigma*sigma*i*i*Ts*Ts);
+		for (int j = 0; j < M; ++j)
+		{
+			R(i,j) = P*std::exp( -2.0*PI*PI*sigma*sigma*t[i*M+j]*t[i*M+j]);
+		}
+		
 	}
-	return  toeplitz(R);
+	free(t);
+	return  R;
 
 
 }
@@ -207,18 +311,19 @@ mat Rc_matrix(double P, double sigma, int M, double PRF)
 cx_mat Rp_matrix(double Sp, double sigma_p, double fm, int M, double PRF)
 {
 	double Ts = 1.0/PRF;
-	Row<cx_double> Rp(M);
-	for (int j = 0; j < M; ++j)
+	double* t = (double*)malloc(sizeof(double*)*M*M);
+	construyeMatriztiempos( M,  PRF,  t);
+	Mat<cx_double> Rp(M,M);
+	for (int i = 0; i < M; ++i)
 	{
-		Rp(j) = cx_double(Sp*std::exp(-2.0*PI*PI*sigma_p*sigma_p*j*j*Ts*Ts)* std::cos(-2.0*PI*fm*j*Ts) , Sp*std::exp(-2.0*PI*PI*sigma_p*sigma_p*j*j*Ts*Ts)* std::sin(-2.0*PI*fm*j*Ts) );
-		
+		for (int j = 0; j < M; ++j)
+		{
+			Rp(i,j) = cx_double(Sp*std::exp(-2.0*PI*PI*sigma_p*sigma_p*t[i*M+j]*t[i*M+j])* std::cos(-2.0*PI*fm*t[i*M+j]) , Sp*std::exp(-2.0*PI*PI*sigma_p*sigma_p*t[i*M+j]*t[i*M+j])* std::sin(-2.0*PI*fm*t[i*M+j]) );
+		}
 	}
-
-	Row<cx_double> Rpaux(M);
-	Rpaux(0) = Rp(0); Rpaux(span(1,M-1)) = conj(Rp(span(1,M-1)));	
+	free(t);
+	return Rp;
 	
-
-	return toeplitz(Rpaux,Rp);
 }
 
 template<typename T>
@@ -250,7 +355,7 @@ std::vector<double> CalculaMomentosPPP(cx_mat Ry , int M, double PRF, double Noi
 		R1 = R1 + Ry(i+1,i);
 	}
 	R1 = R1/(M-1.0);
-	fm = -PRF/(2*PI)*arg(R1);
+	fm = PRF/(2*PI)*arg(R1);
 
 	double sigma;
 	if(Pf/abs(R1) <= 1.0)
@@ -270,9 +375,9 @@ std::vector<double> CalculaMomentosPPP(cx_mat Ry , int M, double PRF, double Noi
 
 
 
-void saveMoments(std::vector<std::vector<double>> momentos, int Lr )
+void saveMoments(std::vector<std::vector<double>> momentos, int Lr, std::string name_file )
 {
-	FILE* file = fopen("momentos.bin", "w");
+	FILE* file = fopen(name_file.c_str(), "w");
 	double aux;
 	for (int i = 0; i < Lr; ++i)
 	{	
