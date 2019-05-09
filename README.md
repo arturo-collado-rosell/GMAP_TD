@@ -19,7 +19,7 @@
 Forma de Almacenar los datos simulados.
  Los datos simulados en matlab se almacenan en forma binaria para que sea más facil levantar los datos en c++.	
  
- Dentro de GMAP-TD no está implementado aún la forma de estimar el piso de ruido, por lo que ese valor se pasa directamente en la función que implementa el algoritmo.
+ Ya esta implementada una version de la estimacion de ruido usando el paper del 1973 Objective Determination of the Noise Level in Doppler Spectra
  
  Como compilar
     Para compílar necesitan tener instalado la librería armadillo, si uno busca en http://arma.sourceforge.net/ encontrará la información necesaria para instalarla. Yo uso linux y compilo de la siguiente manera
