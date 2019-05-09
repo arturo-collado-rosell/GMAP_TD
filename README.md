@@ -1,6 +1,6 @@
 1- Este repo fue creado con la intención de implementar GMAP-TD en c++ (paso previo a su implementación en cuda), con el objetivo de encontrar cuellos de botellas en la ejecución etc.
 
-2- Una particularidad de la implementación es que se usó la librería armadillo, la cual es una librería especializada en algebra lineal y es lo mas similar a Matlab que se encuentra en c++. Lo único que es imprescindible de esta libreria es la función para calcular autovalores y autovectores de una matriz. El resto de las cosas se pueden implementar a mano (multiplicacion de matrices, raiz cuadrada matricial, etc).
+2- Una particularidad de la implementación es que se usó la librería armadillo, la cual es una librería especializada en algebra lineal y es lo mas similar a Matlab que se encuentra en c++. Lo único que por el momento es imprescindible de esta libreria es la función para calcular autovalores y autovectores de una matriz. El resto de las cosas se pueden implementar a mano (multiplicacion de matrices, raiz cuadrada matricial, etc).
 
 3- La estructura de los archivos es la siguiente. Por un lado tenemos los archivos .m, los cuales son archivos Matlab cuyo objetivo es simular los datos sintéticos y también levantar los resultados provenientes del procesamiento y graficarlos. Por otro lado, están los archivos .cpp, en los cuales está la implementación y testeo de GMAP-TD. A continuación el nombre del archivo con su breve descripción.
 
