@@ -11,19 +11,22 @@
 #include "algoritmos.cpp" //Aca van los algoritmos , por el momento GMAP-TD
 
 
-int M=64; //Número de muetras 
-int I=1;  // Número de realizaciones para estimar el espectro. (en la práctica I=1), con datos simulados puede ser > 1
-int celdas = 1000;  //Número de celdas en rango 
-double PRF = 2000.0; //[Hz] Frecuencia de repetición de pulsos
-double sigma_c = 23; // [Hz] ancho de la DEP del clutter. hay que tener en cuenta el efecto de la ventana. Este valor cambia según el número de muestras 
-double sigma = 8.33;    //[Hz] el ancho teorico del clutter
-double lambda = 0.06; // longitud de onda [m]
-int P = 20; //numero de velocidades distintas
+int M; //Número de muetras 
+int I;  // Número de realizaciones para estimar el espectro. (en la práctica I=1), con datos simulados puede ser > 1
+int celdas ;  //Número de celdas en rango 
+double PRF ; //[Hz] Frecuencia de repetición de pulsos
+double sigma_c ; // [Hz] ancho de la DEP del clutter. hay que tener en cuenta el efecto de la ventana. Este valor cambia según el número de muestras 
+double sigma ;    //[Hz] el ancho teorico del clutter
+double lambda ; // longitud de onda [m]
+int P ; //numero de velocidades distintas
 
 
 
 int main(int argc, char const *argv[])
 {
+	//leo de un archivo de texto los datos necesarios para procesar 
+	std::string file_name = "metadatos.txt";
+	read_metaDatos(file_name,  M,  PRF,  sigma,  sigma_c,  celdas,  I,  lambda,  P);
 	
 	for (int i = 0; i < P; ++i)
 	{

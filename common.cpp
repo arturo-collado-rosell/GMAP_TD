@@ -9,6 +9,34 @@ using namespace arma;
 
 #define PI 3.14159
 
+
+void read_metaDatos(std::string file_name, int& M, double& PRF, double& sigma, double& sigmaW, int& celdas, int& I, double& lambda, int& P)
+{
+	FILE * pFile;
+	pFile = fopen(file_name.c_str(), "r");
+
+
+	float sigmaW_aux, sigma_aux, lambda_aux, PRF_aux;
+
+	fscanf (pFile, "%i", &M);
+	fscanf (pFile, "%f", &PRF_aux);
+	fscanf (pFile, "%i", &celdas);
+	fscanf (pFile, "%i", &I);
+	fscanf (pFile, "%f", &sigmaW_aux);
+	fscanf (pFile, "%f", &sigma_aux);
+    fscanf (pFile, "%f", &lambda_aux);
+    fscanf (pFile, "%i", &P);
+    
+    // Convert float into double
+    PRF = double(PRF_aux);
+    sigma = double(sigma_aux);
+    sigmaW = double(sigmaW_aux);
+    lambda = double(lambda_aux);
+
+    fclose (pFile);
+
+}
+
 void construyeMatriztiempos(int M, double PRF, double* tMatriz)
 {
 	
