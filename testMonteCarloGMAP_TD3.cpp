@@ -1,5 +1,4 @@
-
-
+/*Funcionamiento de la tercera implementacion de GMAP-TD, esta usa la forma de calcular la raiz y la inversa de la matriz tal como lo propuso Sebastian */
 
 #include <cstdlib>
 #include <iostream>
@@ -54,26 +53,17 @@ int main(int argc, char const *argv[])
 	
 		//Se crea la matriz de dimensiones 3xceldas, donde se almacenarán los resultados de los 3 primeros momentos del fenómeno
 		std::vector<std::vector<double>> resultado(celdas, std::vector<double>(3));
-	
-		//Construcción de la matriz Rc Sin tener en cuenta la potencia del clutter.
-		mat Rc= Rc_matrix( 1.0,  sigma, M, PRF);
-		vec eigval_real;
-		mat  eigvec_real;
-		//calculo los autovalores y autovectores de Rc (esto se hace aca, para poder construir el filtro A de forma mas simple)
-		eig_sym( eigval_real, eigvec_real,Rc);
-	
 
-		cx_vec eigval =cx_vec(eigval_real, vec(M,fill::zeros)); 
-		cx_mat eigvec =cx_mat(eigvec_real, mat(M,M,fill::zeros)); 
+		
 
 		//Para cada celda se realiza el llamado a la rutina GMAP_TD
 		for (int i = 0; i < celdas; ++i)
 		{
 			//std::cout<<i<<"\n";
 			if(I==1)
-				resultado[i]=GMAP_TD_Sebastian(x.col(i),I,M, PRF, sigma_c, eigval, eigvec);
+				resultado[i]=GMAP_TD_cpp(x.col(i),I,M, PRF, sigma_c, sigma);
 			else
-				resultado[i]=GMAP_TD_Sebastian(x,I,M, PRF, sigma_c, eigval, eigvec);
+				resultado[i]=GMAP_TD_cpp(x,I,M, PRF, sigma_c, sigma);
 		}
 
 		auto end = std::chrono::system_clock::now();

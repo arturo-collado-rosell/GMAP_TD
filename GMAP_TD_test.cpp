@@ -32,7 +32,9 @@ int main(int argc, char const *argv[])
 
 	//Open data file
 	FILE* pFile;
-	pFile = fopen("data.bin", "r");
+	std::string name_file_to_open = "archivos_in/data" + std::to_string(0) + ".bin";
+	pFile = fopen(name_file_to_open.c_str(), "r");
+	pFile = fopen("data1.bin", "r");
 	if(pFile==NULL) {fputs("File error", stderr);}
 
 	//copy the file into the buffer
@@ -64,7 +66,8 @@ int main(int argc, char const *argv[])
 	std::cout << "Tiempo trascurrido usando chrono " << diff.count() << " s\n";
 	
 	//save moments into a binary file 
-	saveMoments(resultado,celdas);
+	std::string name_file = "archivos_out/momentos" + std::to_string(0) + ".bin"; 
+	saveMoments(resultado,celdas,name_file);
 
 	free(buffer);
 	return 0;

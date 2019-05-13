@@ -52,8 +52,8 @@ for q=1:P
     
 %     figure;
 %     subplot(3,1,1); plot(potencia);
-%     subplot(3,1,2); plot(-velocidadm*lambda/2);
-%     subplot(3,1,3); plot(ancho*lambda/2);
+%     subplot(3,1,2); plot(velocidadm);
+%     subplot(3,1,3); plot(ancho);
     
     
     

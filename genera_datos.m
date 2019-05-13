@@ -33,7 +33,7 @@ SNR = 20;                       % relación señal a ruido
 Sp = 10^(50/10);                         % potencia del fenomeno (mantener en 1)
 % vm = 0.05*vs;                   % velocidad media del fenomeno [m/s]
 vm = linspace(0,0.8*vs/2,20);
-sigma_pv = 3;                   % ancho espectral del fenomeno [m/s]
+sigma_pv = 4;                   % ancho espectral del fenomeno [m/s]
 
 
 sigma_pf = 2*sigma_pv/lambda;   % ancho espectral del fenomeno [Hz]
